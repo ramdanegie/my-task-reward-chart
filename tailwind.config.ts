@@ -22,6 +22,9 @@ const config: Config = {
           success: '#34A853',
         },
       },
+      fontFamily: {
+        sans: ['Nunito', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+      },
     },
   },
   plugins: [],

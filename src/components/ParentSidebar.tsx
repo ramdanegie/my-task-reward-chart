@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, CheckSquare, Gift, FileText, BookMarked, Settings, LogOut, BarChart2, X } from 'lucide-react';
+import { Home, Users, CheckSquare, Gift, FileText, BookMarked, Settings, LogOut, BarChart2, X, Wallet } from 'lucide-react';
 
 const navItems = [
   { href: '/parent/dashboard', label: 'Dashboard', icon: <Home size={18} /> },
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/parent/rewards', label: 'Reward', icon: <Gift size={18} /> },
   { href: '/parent/checklist', label: 'Checklist', icon: <BookMarked size={18} /> },
   { href: '/parent/reports', label: 'Laporan', icon: <FileText size={18} /> },
+  { href: '/parent/finance', label: 'Keuangan', icon: <Wallet size={18} /> },
   { href: '/parent/settings', label: 'Pengaturan', icon: <Settings size={18} /> },
 ];
 
