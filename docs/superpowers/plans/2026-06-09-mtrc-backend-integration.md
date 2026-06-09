@@ -18,6 +18,19 @@
 
 ---
 
+## Current Repo State (READ FIRST — reconciliation)
+
+A parallel commit (`93f58d9`) already built the three feature UIs in **dummy-data form**. This plan migrates them to the real backend. **Global rule: where a page, nav item, or component already exists, MIGRATE its data layer to the API — do NOT recreate it or rebuild its markup.** Specifically, what already exists:
+
+- **Multi-child (dummy):** `dummyChildren` (Raka, Sari) in `src/data/dummy.ts`. Each of `dashboard`, `parent/child`, and `parent/finance` has its **own local `activeChildId` state + child `<select>`**. During migration, **remove these per-page selectors and the local state**, and instead consume the shared `ActiveChild` context (Task F2) + the sidebar `ChildSwitcher`.
+- **Week/month filter (dummy):** `FilterPeriod`, `getWeeklyChartData(period)`, `calculateWeeklyPoints(childId, period)`. Pages have **inline `Minggu/Bulan` toggle buttons** with local `period` state. During migration, **replace these inline toggles with the `RangeFilter` component (Task F3)** driving `useSummary`.
+- **Finance:** `src/app/parent/finance/page.tsx` exists (add-pocket + add-transaction modals, but **no transfer, no delete-pocket, and its period toggle is not wired to filtering**). `src/app/child/wallet/page.tsx` exists (read-only). The sidebar already has the `Keuangan` nav item; the child bottom-nav already has the `Kantong` tab.
+- **Child layout:** `src/app/child/layout.tsx` hardcodes `ACTIVE_CHILD_ID = 'child-1'` and reads `dummyChildren`. Migrate it to read the logged-in child from `/api/child/me`.
+
+Tasks below whose titles say "Create" but whose target already exists are marked **(MIGRATE)** — modify in place, keep the existing markup, swap only the data source and wire mutations.
+
+---
+
 ## Phase A — Foundation & Tooling
 
 ### Task A1: Install dependencies & init Prisma
@@ -2602,10 +2615,12 @@ git commit -m "feat(client): add weekly/monthly range filter component"
 
 > For each page: remove `import … from '@/data/dummy'`, fetch via hooks scoped to `activeChildId`, render a loading state while `isLoading`, and an empty state when no child exists. Keep the existing JSX/styling — only swap the data source and wire mutations. Below, only the data-layer changes are specified; reuse the existing markup.
 
-### Task G1: Parent dashboard → live summary + range filter
+### Task G1: Parent dashboard → live summary + range filter (MIGRATE)
 
 **Files:**
 - Modify: `src/app/parent/dashboard/page.tsx`
+
+> The page already renders a child `<select>` (local `activeChildId` state) and inline `Minggu/Bulan` buttons (local `period` state) over dummy data. **Delete the local `activeChildId` state + its `<select>`, and the inline period buttons** — replace with the shared context and `RangeFilter`. Keep the stat cards / charts / task-list markup.
 
 - [ ] **Step 1: Rewrite the data layer**
   - Replace dummy imports with: `useActiveChild`, `useSummary`, `useLogs`, `useRewards`, `RangeFilter`, `useState`.
@@ -2633,16 +2648,19 @@ git commit -m "feat(parent): wire dashboard to live summary with range filter"
 
 ---
 
-### Task G2: Parent children page → multi-child list + CRUD + access code
+### Task G2: Parent children page → multi-child CRUD + access code (MIGRATE)
 
 **Files:**
 - Modify: `src/app/parent/child/page.tsx`
 
-- [ ] **Step 1: Replace the single-profile form with a list view**
-  - Use `useChildren()` + `useActiveChild()`.
-  - Render each child as a card: avatar, name, age, targets, **access code** (with a "Regenerate" button → `apiSend('/api/children/'+id+'/access-code', 'POST')` then `mutate`), Edit and Delete buttons.
-  - "Tambah Anak" button opens an inline form (name, age, avatar emoji, daily/weekly targets, checkbox "Pakai tugas & reward default"). Submit → `apiSend('/api/children', 'POST', form)` then `mutate` + `refresh()`.
-  - Edit → `apiSend('/api/children/'+id, 'PATCH', form)`. Delete → confirm, then `apiSend('/api/children/'+id, 'DELETE', undefined)` then `mutate`.
+> The page already has the multi-child UI (selector chips, "Tambah Anak" modal, edit form, "Semua Anak" summary) but on **local dummy state that doesn't persist**. Migrate it to the API and add access-code UI. Replace the local `children`/`activeId` state with `useChildren()` + `useActiveChild()`.
+
+- [ ] **Step 1: Wire the existing UI to the API**
+  - `useChildren()` for the list; `useActiveChild()` for the selected child (remove local `activeId`).
+  - "Tambah Anak" modal submit → `apiSend('/api/children', 'POST', form)` then `mutate` + `refresh()`. Add a checkbox "Pakai tugas & reward default" → sets `seedDefaults: true`. Add avatar + daily/weekly target fields to the modal.
+  - Make the edit form actually save → `apiSend('/api/children/'+id, 'PATCH', form)` then `mutate`.
+  - Add a **Delete** button per child → confirm, then `apiSend('/api/children/'+id, 'DELETE', undefined)` then `mutate`.
+  - Add an **access code** row in the edit form / each summary card showing `child.accessCode`, with a "Regenerate" button → `apiSend('/api/children/'+id+'/access-code', 'POST')` then `mutate`.
 - [ ] **Step 2: Verify** — add a second child with defaults; it appears in the switcher; access code shows and regenerates.
 - [ ] **Step 3: Commit**
 
@@ -2840,13 +2858,17 @@ git commit -m "feat(child): add access-code entry page"
 
 ---
 
-### Task H2: Child dashboard, points, rewards → live data + pockets
+### Task H2: Child layout + dashboard, points, rewards, wallet → live data (MIGRATE)
 
 **Files:**
+- Modify: `src/app/child/layout.tsx` (remove `ACTIVE_CHILD_ID`/`dummyChildren`; read child name from `/api/child/me`)
 - Modify: `src/app/child/page.tsx`
 - Modify: `src/app/child/points/page.tsx`
 - Modify: `src/app/child/rewards/page.tsx`
+- Modify: `src/app/child/wallet/page.tsx` (already exists — migrate from `dummyPockets`/`dummyTransactions` to `me.pockets`)
 - Create: `src/lib/childHooks.ts`
+
+> The child bottom-nav already includes a "Kantong" (`/child/wallet`) tab, so pockets live on their own page. The dashboard pocket card in Step 2 is therefore **optional** — prefer migrating the existing wallet page over duplicating it.
 
 - [ ] **Step 1: Create `src/lib/childHooks.ts`**
 
@@ -2873,38 +2895,42 @@ export function useChildMe() {
 - [ ] **Step 2: Child dashboard** — replace dummy usage in `src/app/child/page.tsx` with `useChildMe()`. Build `logs` keyed by `taskId`; toggling a task calls `apiSend('/api/child/logs','POST',{taskId,date:me.today,done})` then `mutate()`. Compute `dailyPoints` via completed logs. Add a **pockets summary card** above tasks: list each `me.pockets` with `formatRupiah(p.balance)` and a total `formatRupiah(me.total)`. Keep existing greeting/progress/motivation/markup.
 - [ ] **Step 3: Child points page** — use `useChildMe()` (or `useSummary` is parent-only; for child use the logs in `me` for today and show daily points + pockets). Replace dummy chart series with completed-today breakdown; keep simple.
 - [ ] **Step 4: Child rewards page** — use `me.rewards` + current daily points to show progress to each reward (reuse existing visuals).
-- [ ] **Step 5: Verify** — child view shows real tasks, can check tasks, sees pocket balances; refresh persists.
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Child layout** — in `src/app/child/layout.tsx`, remove `ACTIVE_CHILD_ID` and the `dummyChildren` import; get the child's name/initial from `useChildMe()` (`me.child.name`). Add a "Keluar" action that calls `apiSend('/api/child-access','DELETE')` then routes to `/child/enter`.
+- [ ] **Step 6: Child wallet page** — in `src/app/child/wallet/page.tsx`, replace `dummyPockets`/`dummyTransactions`/`getPocketBalance` with `useChildMe()`: render `me.pockets` (each `formatRupiah(p.balance)`) and `me.total`. Keep the existing card markup.
+- [ ] **Step 7: Verify** — child view shows real tasks, can check tasks, and the Kantong tab shows live pocket balances; refresh persists.
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/app/child src/lib/childHooks.ts
-git commit -m "feat(child): wire child mode to live data incl. pockets"
+git commit -m "feat(child): wire child mode (incl. layout + wallet) to live data"
 ```
 
 ---
 
 ## Phase I — Finance Page
 
-### Task I1: Parent finance page + sidebar entry
+### Task I1: Parent finance page → live data + transfer + filter (MIGRATE)
 
 **Files:**
-- Create: `src/app/parent/finance/page.tsx`
-- Modify: `src/components/ParentSidebar.tsx` (add "Keuangan" nav item)
+- Modify: `src/app/parent/finance/page.tsx` (already exists — add-pocket & add-transaction modals over dummy state)
 
-- [ ] **Step 1: Add nav item** — in `ParentSidebar`, add to `navItems` after Reward: `{ href: '/parent/finance', label: 'Keuangan', icon: <Wallet size={18} /> }` (import `Wallet` from `lucide-react`).
-- [ ] **Step 2: Create `src/app/parent/finance/page.tsx`**
-  - Data: `useActiveChild()`, `usePockets(activeChildId)`, `useTransactions(activeChildId, start, end)` driven by a `RangeFilter`.
-  - **Pockets section**: cards per pocket showing name, type, `formatRupiah(balance)`, delete button (`apiSend('/api/pockets/'+id,'DELETE')`). A "Tambah Kantong" form (name, type select [gaji/thr/investasi/custom], initialBalance) → `apiSend('/api/children/'+id+'/pockets','POST',form)`. Total balance header via `data.total`.
-  - **Transaction form**: pocket select, txnType (credit/debit), amount, source select, note → `apiSend('/api/children/'+id+'/transactions','POST',form)`.
-  - **Transfer form**: from-pocket, to-pocket, amount, note → `apiSend('/api/children/'+id+'/transfer','POST',form)`.
-  - **History**: table from `useTransactions`, each row: date (`formatDateID` of `occurredAt`), pocket name, `txnType` badge, `formatRupiah(amount)`, source, note. Filtered by `RangeFilter` (compute start/end from range+date via `getWeekRange`/`getMonthRange`).
-  - `mutate()` pockets + transactions after every mutation.
-- [ ] **Step 3: Verify** — create pockets, add credit/debit, transfer between pockets; balances update; history filters by week/month.
-- [ ] **Step 4: Commit**
+> The `Keuangan` sidebar nav item already exists — **do not add it again**. The existing page has its own child `<select>` and an inert `Minggu/Bulan` toggle. Migrate it: replace local `pockets`/`transactions`/`activeChildId` state with API hooks + the shared context, wire the period toggle to real filtering via `RangeFilter`, and **add the two missing capabilities (transfer, delete-pocket)**.
+
+- [ ] **Step 1: Rewire the existing page to the API**
+  - Remove the local child `<select>` → use `useActiveChild()` for `activeChildId`.
+  - Data: `usePockets(activeChildId)` (cards + total via `data.total`), `useTransactions(activeChildId, start, end)`.
+  - Replace the inline `Minggu/Bulan` buttons with `<RangeFilter range date onRangeChange onDateChange />`; derive `start`/`end` via `getWeekRange`/`getMonthRange` and pass to `useTransactions`.
+  - Display balances with `formatRupiah(...)` (keep existing `toLocaleString` styling if preferred).
+  - "Tambah Kantong" modal submit → `apiSend('/api/children/'+id+'/pockets','POST',form)` (fields: name, type select [gaji/thr/investasi/custom], initialBalance) then `mutate`.
+  - "Tambah Transaksi" modal submit → `apiSend('/api/children/'+id+'/transactions','POST',form)` then `mutate` both pockets + transactions.
+- [ ] **Step 2: Add delete-pocket** — a delete button per pocket card → confirm, then `apiSend('/api/pockets/'+id,'DELETE',undefined)` then `mutate`.
+- [ ] **Step 3: Add transfer form** — from-pocket select, to-pocket select, amount, note → `apiSend('/api/children/'+id+'/transfer','POST',form)` then `mutate`.
+- [ ] **Step 4: Verify** — create pockets, add credit/debit, transfer between pockets; balances update; history filters by week/month.
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/app/parent/finance/page.tsx src/components/ParentSidebar.tsx
-git commit -m "feat(finance): add parent finance page (pockets, transactions, transfer)"
+git add src/app/parent/finance/page.tsx
+git commit -m "feat(finance): migrate finance page to API; add transfer + delete + filter"
 ```
 
 ---
