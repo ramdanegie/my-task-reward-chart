@@ -1,11 +1,10 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import bcrypt from 'bcryptjs';
 import { DEFAULT_TASKS, DEFAULT_REWARDS } from '../src/server/defaults';
 import { generateAccessCode } from '../src/server/auth/childSession';
 
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? 'file:./dev.db' });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   const email = 'demo@mtrc.app';

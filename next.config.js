@@ -4,8 +4,7 @@ const nextConfig = {
   output: 'standalone',
   // Pin the tracing root to this project (a stray lockfile in $HOME confuses inference)
   outputFileTracingRoot: __dirname,
-  // Keep the native SQLite driver out of the bundler; load it at runtime
-  serverExternalPackages: ['better-sqlite3'],
+  // No native better-sqlite3 adapter needed for Prisma SQLite client
 }
 
 module.exports = nextConfig
