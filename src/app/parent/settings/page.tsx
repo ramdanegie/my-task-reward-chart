@@ -1,9 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { Bell, Lock, Globe, Trash2, RotateCcw, ChevronRight, Mail } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { Bell, Globe, Trash2, RotateCcw, Mail, User, LogOut } from 'lucide-react';
 
 export default function ParentSettings() {
+  const { data: session } = useSession();
+
   return (
     <div className="p-4 md:p-6 max-w-2xl">
       <div className="mb-6">
@@ -16,23 +18,29 @@ export default function ParentSettings() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Akun</h2>
           <div className="space-y-1">
-            {[
-              { icon: <Mail size={16} />, label: 'Email', sub: 'orang-tua@example.com', right: <ChevronRight size={16} /> },
-              { icon: <Lock size={16} />, label: 'Password', sub: 'Ubah password Anda', right: <ChevronRight size={16} /> },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
-                <span className="text-gray-400">{item.icon}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                  <p className="text-xs text-gray-500">{item.sub}</p>
-                </div>
-                <span className="text-gray-300">{item.right}</span>
+            <div className="flex items-center gap-3 p-3 rounded-lg">
+              <span className="text-gray-400"><User size={16} /></span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">Nama</p>
+                <p className="text-xs text-gray-500">{session?.user?.name ?? '—'}</p>
               </div>
-            ))}
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg">
+              <span className="text-gray-400"><Mail size={16} /></span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">Email</p>
+                <p className="text-xs text-gray-500">{session?.user?.email ?? '—'}</p>
+              </div>
+            </div>
+            <button onClick={() => signOut({ callbackUrl: '/' })}
+              className="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg text-left text-[#EA4335] transition-colors">
+              <LogOut size={16} />
+              <span className="text-sm font-medium">Keluar dari akun</span>
+            </button>
           </div>
         </div>
 
-        {/* Notifications */}
+        {/* Notifications (cosmetic) */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
             <Bell size={14} className="text-[#4285F4]" /> Notifikasi
@@ -54,7 +62,7 @@ export default function ParentSettings() {
           </div>
         </div>
 
-        {/* Preferences */}
+        {/* Preferences (cosmetic) */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
             <Globe size={14} className="text-[#4285F4]" /> Preferensi
@@ -76,30 +84,29 @@ export default function ParentSettings() {
           </div>
         </div>
 
-        {/* Danger zone */}
+        {/* Danger zone (cosmetic placeholders) */}
         <div className="bg-white rounded-xl border border-red-100 shadow-sm p-5">
           <h2 className="text-sm font-semibold text-[#EA4335] uppercase tracking-wide mb-3">Zona Berbahaya</h2>
           <div className="space-y-2">
-            <button className="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg text-left border border-gray-100 transition-colors">
+            <div className="w-full flex items-center gap-3 p-3 rounded-lg text-left border border-gray-100">
               <RotateCcw size={16} className="text-orange-500 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-800">Reset Data Minggu Ini</p>
-                <p className="text-xs text-gray-500">Hapus semua data poin minggu ini</p>
+                <p className="text-xs text-gray-500">Belum tersedia</p>
               </div>
-            </button>
-            <button className="w-full flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg text-left border border-gray-100 transition-colors">
+            </div>
+            <div className="w-full flex items-center gap-3 p-3 rounded-lg text-left border border-gray-100">
               <Trash2 size={16} className="text-[#EA4335] shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-800">Hapus Semua Data</p>
-                <p className="text-xs text-gray-500">Tindakan ini tidak dapat dikembalikan</p>
+                <p className="text-xs text-gray-500">Hapus tiap anak dari menu Anak</p>
               </div>
-            </button>
+            </div>
           </div>
         </div>
 
         <div className="text-center text-xs text-gray-400 pt-2">
           <p>MTRC v0.1.0</p>
-          <Link href="/" className="text-[#4285F4] hover:underline mt-1 inline-block">Kembali ke halaman utama</Link>
         </div>
       </div>
     </div>

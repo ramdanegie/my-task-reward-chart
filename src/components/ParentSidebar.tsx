@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, CheckSquare, Gift, FileText, BookMarked, Settings, LogOut, BarChart2, X, Wallet } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import ChildSwitcher from './ChildSwitcher';
 
 const navItems = [
@@ -70,10 +71,10 @@ export default function ParentSidebar({ open, onClose }: Props) {
       </nav>
 
       <div className="p-3 border-t border-gray-100">
-        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:bg-red-50 hover:text-[#EA4335] rounded-lg transition-all text-sm">
+        <button onClick={() => signOut({ callbackUrl: '/' })} className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:bg-red-50 hover:text-[#EA4335] rounded-lg transition-all text-sm">
           <LogOut size={18} />
           <span>Keluar</span>
-        </Link>
+        </button>
       </div>
     </aside>
   );
