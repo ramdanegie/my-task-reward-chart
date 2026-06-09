@@ -1,300 +1,97 @@
-# MTRC - My Task Reward Chart
-## Frontend Application (Dummy Data Demo)
+# MTRC — My Task Reward Chart
 
-**Version:** 0.1.0 MVP  
-**Status:** Frontend Demo with Dummy Data  
-**Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Recharts
+Aplikasi web untuk membantu orang tua membuat, memantau, dan mengevaluasi tugas
+harian anak menggunakan sistem poin, reward, dan **kantong saldo** — kini dengan
+**backend nyata** (database, autentikasi, multi-anak).
 
----
-
-## 📋 Overview
-
-MTRC adalah aplikasi web untuk membantu orang tua membuat, memantau, dan mengevaluasi tugas harian anak usia 7 tahun menggunakan sistem poin dan reward.
-
-Aplikasi ini dirancang dengan **dua mode utama**:
-- **Parent Mode**: Dashboard lengkap untuk mengelola tugas, reward, dan memantau progress anak
-- **Child Mode**: Antarmuka sederhana untuk anak usia 7 tahun agar dapat melihat tugas dan mengumpulkan poin
+**Tech stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma + SQLite ·
+Auth.js v5 (email/password + Google) · SWR · Recharts · Vitest.
 
 ---
 
-## 🚀 Quick Start
+## Fitur
 
-### Prerequisites
-- Node.js 18+
-- npm atau yarn
+- **Autentikasi orang tua** — daftar/login email & password, plus opsi Google OAuth.
+- **Multi-anak** — satu akun mengelola banyak profil anak, dengan pemilih anak aktif.
+- **Tugas & checklist harian** — CRUD tugas, checklist, alur persetujuan (approval).
+- **Sistem poin** — agregasi harian/mingguan/bulanan otomatis dari log.
+- **Filter mingguan & bulanan** — dashboard dan laporan dengan navigasi periode.
+- **Reward** — CRUD reward, pemberian reward, opsi kredit otomatis ke kantong.
+- **Kantong saldo (multi-pocket)** — kantong kustom (Gaji, THR, Investasi, …),
+  transaksi kredit/debit, **transfer antar kantong**, riwayat terfilter.
+- **Mode Anak via kode** — anak membuka tampilannya sendiri dengan kode akses
+  (tanpa login penuh orang tua); melihat tugas, poin, reward, dan saldo.
 
-### Installation
+---
+
+## Menjalankan secara lokal
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 npm install
 
-# Run development server
-npm run dev
+# 2. Siapkan environment (lihat .env.example)
+cp .env.example .env
+#   - AUTH_SECRET           : npx auth secret
+#   - CHILD_SESSION_SECRET  : string acak
+#   - AUTH_GOOGLE_ID/SECRET : opsional (login Google)
+
+# 3. Migrasi database + data demo
+npx prisma migrate deploy
+npm run db:seed     # mencetak login demo + kode anak
+
+# 4. Jalankan
+npm run dev         # http://localhost:3000
 ```
 
-Buka browser dan akses:
-- **Local:** http://localhost:3000
-- **Halaman Utama:** Pilih mode Orang Tua atau Anak
+**Akun demo (dari seed):** `demo@mtrc.app` / `demo1234`. Seed juga mencetak kode
+Mode Anak (mis. `4XY6FD`) untuk dipakai di halaman **Mode Anak**.
 
----
-
-## 📁 Project Structure
-
-```
-src/
-├── app/
-│   ├── page.tsx                 # Landing page dengan pilihan role
-│   ├── layout.tsx               # Root layout
-│   ├── globals.css              # Global styles
-│   │
-│   ├── parent/
-│   │   ├── layout.tsx           # Parent layout dengan sidebar
-│   │   ├── login/page.tsx       # Parent login page
-│   │   ├── dashboard/page.tsx   # Parent dashboard (main stats)
-│   │   ├── tasks/page.tsx       # Task management
-│   │   ├── child/page.tsx       # Child profile management
-│   │   ├── checklist/page.tsx   # Daily checklist & approval
-│   │   ├── rewards/page.tsx     # Reward management
-│   │   ├── reports/page.tsx     # Weekly reports & insights
-│   │   └── settings/page.tsx    # Settings & preferences
-│   │
-│   └── child/
-│       ├── layout.tsx           # Child layout dengan bottom nav
-│       ├── page.tsx             # Child dashboard (tugas harian)
-│       ├── points/page.tsx      # Child points tracking
-│       └── rewards/page.tsx     # Child rewards view
-│
-├── components/
-│   └── ParentSidebar.tsx        # Navigation sidebar untuk parent mode
-│
-└── data/
-    └── dummy.ts                 # Dummy data & data types
-```
-
----
-
-## 🎯 Features Implemented
-
-### Parent Mode
-
-#### 1. **Dashboard** 📊
-- Total poin hari ini & minggu ini
-- Tingkat penyelesaian tugas
-- Chart progress mingguan (Line Chart)
-- Breakdown kategori tugas (Pie Chart)
-- Status tugas (completed, pending, waiting approval)
-- Daftar reward yang akan dicapai
-
-#### 2. **Profile Anak** 👦
-- Edit nama anak
-- Edit usia
-- Target poin harian & mingguan
-- Menyimpan perubahan
-
-#### 3. **Manajemen Tugas** ✅
-- Daftar tugas dikelompokkan per kategori
-- Status aktif/nonaktif
-- Tampilan poin per tugas
-- Indikator "Perlu Approval"
-- Form untuk tambah tugas baru
-
-#### 4. **Checklist Harian** ☑️
-- Tampilan tugas selesai
-- Tugas menunggu approval (dengan tombol approve/reject)
-- Tugas belum dikerjakan
-- Real-time poin counter
-
-#### 5. **Manajemen Reward** 🎁
-- Daftar reward dengan tipe (food, playtime, movie, outing, toy, activity)
-- Indikator minimal poin
-- Tombol klaim reward
-- Riwayat reward yang diberikan
-
-#### 6. **Laporan Mingguan** 📈
-- Grafik bar progress harian
-- Total poin minggu
-- Tugas yang paling konsisten
-- Tugas yang sering terlewat
-- Catatan harian orang tua
-- Insights & rekomendasi
-
-#### 7. **Settings** ⚙️
-- Pengaturan akun
-- Notifikasi preferences
-- Bahasa & zona waktu
-- Zona berbahaya (reset, delete)
-
----
-
-### Child Mode
-
-#### 1. **Dashboard Harian** 📝
-- Greeting yang ramah anak-anak
-- Progress bar poin harian
-- Tugas dikelompok per kategori
-- Status tugas visual (✅ selesai, ⏳ menunggu approval, ⭕ pending)
-- Interaktif - klik untuk tandai selesai
-- Pesan motivasi berdasarkan progress
-
-#### 2. **Points Tracking** ⭐
-- Tampilan besar poin mingguan
-- Grafik line chart progress harian
-- Perincian poin per hari
-- Info motivasi tentang reward
-
-#### 3. **Rewards View** 🎁
-- Highlight reward berikutnya
-- Daftar semua reward dengan progress
-- Visual status (dapat diklaim, sudah diklaim, belum tercapai)
-- Riwayat reward yang sudah diklaim
-
----
-
-## 📊 Dummy Data Included
-
-### Child Profile
-- **Nama:** Raka
-- **Usia:** 7 tahun
-- **Daily Target:** 60 poin
-- **Weekly Target:** 350 poin
-
-### Tasks (10 Default Tasks)
-Tugas-tugas untuk anak usia 7 tahun:
-- Pagi (2): Bangun pagi, Merapikan tempat tidur
-- Kebersihan (2): Mandi, Gosok gigi
-- Kemandirian (1): Memakai baju sendiri
-- Rumah Tangga (2): Membereskan mainan, Membantu pekerjaan rumah
-- Belajar (1): Membaca/belajar 15 menit
-- Sikap/Perilaku (1): Bicara sopan
-- Malam (1): Tidur tepat waktu
-
-### Rewards (5 Default Rewards)
-- Pilih menu sarapan (50 poin) 🍕
-- Main tambahan 30 menit (60 poin) 🎮
-- Pilih film keluarga (70 poin) 🎬
-- Jalan-jalan kecil (85 poin) 🎢
-- Beli mainan kecil (100 poin) 🧩
-
-### Daily Logs
-- Tugas untuk hari ini dengan status yang bervariasi
-- Simulasi beberapa tugas sudah selesai
-- Beberapa tugas menunggu approval
-
-### Parent Notes
-- 5 catatan harian contoh untuk minggu ini
-
----
-
-## 🎨 Design Features
-
-### Parent Mode
-- Sidebar navigasi dengan ikon
-- Gradient backgrounds (purple, pink, blue)
-- Card-based layout
-- Charts & analytics
-- Color-coded status indicators
-
-### Child Mode
-- Friendly & playful design
-- Large buttons & text (usia 7 tahun)
-- Lots of emojis
-- Bottom navigation (sticky)
-- Interactive task cards
-- Progress bars yang mudah dipahami
-- Cheerful color palette
-
----
-
-## 🔧 Technology Stack
-
-| Technology | Purpose |
-|-----------|---------|
-| **Next.js 15** | Framework React dengan App Router |
-| **TypeScript** | Type safety |
-| **Tailwind CSS** | Styling & responsive design |
-| **Recharts** | Charts & graphs |
-| **Lucide React** | Icons |
-| **React Hooks** | State management |
-
----
-
-## 🚀 Building for Production
+### Perintah lain
 
 ```bash
-# Build production bundle
-npm run build
-
-# Start production server
-npm start
+npm test            # unit test (vitest): points, summary, finance, dates, auth
+npm run db:reset    # reset & migrasi ulang database
+npm run build       # build produksi (prisma generate + next build)
 ```
 
 ---
 
-## 📝 Notes
+## Deploy (server Node)
 
-### Dummy Data
-Semua data dalam aplikasi ini adalah **dummy/contoh**. Data disimpan hanya dalam state React dan akan hilang jika page di-refresh. Tidak ada backend atau database yang sebenarnya.
+Domain target: `https://mtrc.creativeshine.id`.
 
-### Next Steps untuk Backend Integration
-1. Buat backend API (Next.js API Routes, Express, atau framework lain)
-2. Integrasikan database (PostgreSQL, MongoDB, SQLite)
-3. Tambahkan authentication (JWT, OAuth)
-4. Connect frontend ke API endpoints
-5. Implement real-time updates (Socket.io atau WebSocket)
+```bash
+./build.sh                       # build standalone -> .next/standalone/
+node .next/standalone/server.js  # jalankan (default PORT 3000)
+```
 
-### Features untuk Phase 2+
-- Multi-anak dalam satu akun
-- Notifikasi real-time
-- Gamification (badges, levels)
-- AI insights & recommendations
-- Export laporan PDF
-- Mobile app (React Native/Flutter)
+`build.sh` menjalankan `npm ci`, `prisma generate`, `prisma migrate deploy`,
+`next build`, lalu merakit bundle standalone (menyalin static, public, dan prisma).
+Letakkan reverse proxy (Nginx/Caddy) di depan untuk TLS pada domain.
+
+**Env produksi penting:** `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL=https://mtrc.creativeshine.id`,
+`AUTH_TRUST_HOST=true`, `CHILD_SESSION_SECRET`, (opsional) `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`.
+Pastikan `DATABASE_URL` menunjuk ke file SQLite yang persisten (gunakan path absolut di server).
 
 ---
 
-## 📸 Screenshots
+## Arsitektur (DDD-lite)
 
-### Landing Page
-Pilihan antara Parent dan Child mode
+```
+prisma/                 schema.prisma, migrations, seed.ts
+src/
+  domain/               tipe domain murni
+  server/
+    db.ts               Prisma client (driver adapter better-sqlite3)
+    repositories/       akses data per aggregate
+    services/           use-case murni (points, summary, finance) + unit test
+    auth/               password, child session, helper sesi
+  app/api/.../route.ts  REST route handlers
+  app/parent, app/child halaman (client) yang mengambil data via SWR
+  lib/                  api helper, formatters, SWR hooks
+  auth.ts               konfigurasi Auth.js v5
+  middleware.ts         proteksi /parent (sesi) & /child (kode anak)
+```
 
-### Parent Dashboard
-Visualisasi stats dan progress anak
-
-### Child Tasks
-Interface sederhana untuk anak mengerjakan tugas
-
-### Parent Checklist
-Approval interface untuk tugas yang menunggu persetujuan
-
----
-
-## 🎓 Learning Resources
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [React Hooks](https://react.dev/reference/react)
-- [Recharts](https://recharts.org/)
-
----
-
-## 📄 License
-
-MIT License - Feel free to use for educational & personal projects
-
----
-
-## 🤝 Contributing
-
-Kontribusi welcome! Silakan fork dan submit pull requests.
-
----
-
-## 📧 Support
-
-Jika ada pertanyaan atau issues, silakan buat issue di repository ini.
-
----
-
-**Last Updated:** January 2024  
-**Demo Status:** ✅ Fully Functional with Dummy Data
+Spec & rencana implementasi ada di `docs/superpowers/`.
