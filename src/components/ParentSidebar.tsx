@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, CheckSquare, Gift, FileText, BookMarked, Settings, LogOut, BarChart2, X, Wallet } from 'lucide-react';
+import ChildSwitcher from './ChildSwitcher';
 
 const navItems = [
   { href: '/parent/dashboard', label: 'Dashboard', icon: <Home size={18} /> },
@@ -41,6 +42,11 @@ export default function ParentSidebar({ open, onClose }: Props) {
             <X size={20} />
           </button>
         )}
+      </div>
+
+      {/* Active child switcher */}
+      <div className="px-3 py-3 border-b border-gray-100">
+        <ChildSwitcher />
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
