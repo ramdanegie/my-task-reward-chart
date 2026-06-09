@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ClipboardList, Star, Gift, BarChart2, Wallet } from 'lucide-react';
-import { dummyChildren } from '@/data/dummy';
-
-const ACTIVE_CHILD_ID = 'child-1';
+import { usePathname, useRouter } from 'next/navigation';
+import { ClipboardList, Star, Gift, BarChart2, Wallet, LogOut } from 'lucide-react';
+import { useChildMe } from '@/lib/childHooks';
+import { apiSend } from '@/lib/api';
 
 const navItems = [
   { href: '/child', label: 'Tugas', icon: ClipboardList },
@@ -16,11 +15,16 @@ const navItems = [
 
 export default function ChildLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const child = dummyChildren.find(c => c.id === ACTIVE_CHILD_ID) || dummyChildren[0];
+  const router = useRouter();
+  const { data } = useChildMe();
+
+  // Not logged in (e.g. /child/enter) or still loading: render the page bare.
+  if (!data) return <>{children}</>;
+
+  const exit = async () => { await apiSend('/api/child-access', 'DELETE'); router.push('/child/enter'); };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -34,19 +38,16 @@ export default function ChildLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-[#4285F4] flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{child.name[0]}</span>
+              <span className="text-white text-xs font-bold">{data.child.avatar || data.child.name[0]}</span>
             </div>
-            <span className="text-sm font-medium text-gray-700">{child.name}</span>
+            <span className="text-sm font-medium text-gray-700">{data.child.name}</span>
+            <button onClick={exit} className="ml-1 p-1.5 text-gray-400 hover:text-[#EA4335]" title="Keluar"><LogOut size={16} /></button>
           </div>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="max-w-2xl mx-auto px-4 py-5 pb-28">
-        {children}
-      </main>
+      <main className="max-w-2xl mx-auto px-4 py-5 pb-28">{children}</main>
 
-      {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-10">
         <div className="max-w-2xl mx-auto flex">
           {navItems.map(({ href, label, icon: Icon }) => {

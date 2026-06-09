@@ -38,7 +38,7 @@ export default function Home() {
 
           {/* Child Button */}
           <button
-            onClick={() => router.push('/child')}
+            onClick={() => router.push('/child/enter')}
             className="w-full flex items-center gap-4 p-5 bg-white border-2 border-gray-100 rounded-2xl hover:border-[#34A853] hover:shadow-md transition-all group"
           >
             <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center shrink-0 group-hover:bg-[#34A853] transition-colors">
