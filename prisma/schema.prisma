@@ -1,13 +1,176 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  accounts      Account[]
+  sessions      Session[]
+  children      Child[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Child {
+  id                String         @id @default(cuid())
+  parentId          String
+  name              String
+  age               Int
+  avatar            String         @default("🧒")
+  dailyPointTarget  Int            @default(60)
+  weeklyPointTarget Int            @default(350)
+  accessCode        String         @unique
+  isActive          Boolean        @default(true)
+  parent            User           @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  tasks             Task[]
+  logs              DailyTaskLog[]
+  rewards           Reward[]
+  rewardClaims      RewardClaim[]
+  notes             ParentNote[]
+  pockets           Pocket[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Task {
+  id               String         @id @default(cuid())
+  childId          String
+  title            String
+  description      String         @default("")
+  category         String
+  point            Int
+  requiresApproval Boolean        @default(false)
+  isActive         Boolean        @default(true)
+  child            Child          @relation(fields: [childId], references: [id], onDelete: Cascade)
+  logs             DailyTaskLog[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model DailyTaskLog {
+  id           String    @id @default(cuid())
+  childId      String
+  taskId       String
+  logDate      String
+  status       String    @default("pending")
+  earnedPoint  Int       @default(0)
+  approvedById String?
+  completedAt  DateTime?
+  approvedAt   DateTime?
+  note         String?
+  child        Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([taskId, logDate])
+}
+
+model Reward {
+  id            String        @id @default(cuid())
+  childId       String
+  title         String
+  description   String        @default("")
+  rewardType    String
+  requiredPoint Int
+  isActive      Boolean       @default(true)
+  child         Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  claims        RewardClaim[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model RewardClaim {
+  id             String    @id @default(cuid())
+  childId        String
+  rewardId       String
+  totalPointUsed Int       @default(0)
+  pocketId       String?
+  status         String    @default("claimed")
+  claimedAt      DateTime? @default(now())
+  givenAt        DateTime?
+  child          Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  reward         Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ParentNote {
+  id        String   @id @default(cuid())
+  childId   String
+  noteDate  String
+  note      String
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pocket {
+  id             String              @id @default(cuid())
+  childId        String
+  name           String
+  type           String              @default("custom")
+  initialBalance Int                 @default(0)
+  isActive       Boolean             @default(true)
+  child          Child               @relation(fields: [childId], references: [id], onDelete: Cascade)
+  transactions   PocketTransaction[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model PocketTransaction {
+  id              String   @id @default(cuid())
+  pocketId        String
+  amount          Int
+  txnType         String
+  source          String   @default("manual")
+  note            String?
+  transferGroupId String?
+  occurredAt      DateTime @default(now())
+  pocket          Pocket   @relation(fields: [pocketId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
