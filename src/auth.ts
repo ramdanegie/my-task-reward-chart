@@ -11,6 +11,7 @@ const googleSecret = process.env.AUTH_GOOGLE_SECRET;
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
+  trustHost: true,
   pages: { signIn: '/parent/login' },
   providers: [
     ...(googleId && googleSecret
