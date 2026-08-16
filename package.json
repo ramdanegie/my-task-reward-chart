@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:standalone": "prisma generate && NODE_OPTIONS=--max-old-space-size=1536 next build && bash scripts/assemble-standalone.sh",
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
