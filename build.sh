@@ -6,14 +6,14 @@
 # Run after building:
 #   node .next/standalone/server.js
 #
-# Deploy target: https://mtrc.creativeshine.id
+# Deploy target: 
 #   Run the node server (default port 3000) and put a reverse proxy
 #   (Nginx / Caddy) in front to terminate TLS for the domain.
 #
 # Required production environment variables (set on the server before starting):
 #   DATABASE_URL=file:./prisma/dev.db          # path to the SQLite file (absolute path recommended in prod)
 #   AUTH_SECRET=<random>                        # generate with: npx auth secret
-#   AUTH_URL=https://mtrc.creativeshine.id      # canonical URL for Auth.js callbacks
+#   AUTH_URL=    # canonical URL for Auth.js callbacks
 #   AUTH_TRUST_HOST=true                        # trust the proxy host header
 #   CHILD_SESSION_SECRET=<random>               # signs the child access-code cookie
 #   AUTH_GOOGLE_ID=<optional>                   # Google OAuth (login with Google)
@@ -48,4 +48,4 @@ echo ""
 echo "Build complete."
 echo "Start the server with:"
 echo "    node .next/standalone/server.js"
-echo "It listens on \$PORT (default 3000). Point https://mtrc.creativeshine.id at it via your reverse proxy."
+echo "It listens on \$PORT (default 3000). Point https://<domain.com> at it via your reverse proxy."
