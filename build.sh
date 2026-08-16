@@ -11,7 +11,7 @@
 #   (Nginx / Caddy) in front to terminate TLS for the domain.
 #
 # Required production environment variables (set on the server before starting):
-#   DATABASE_URL=file:./prisma/dev.db          # path to the SQLite file (absolute path recommended in prod)
+#   DATABASE_URL=mysql://user:pass@host:3306/dbname   # MySQL connection string
 #   AUTH_SECRET=<random>                        # generate with: npx auth secret
 #   AUTH_URL=    # canonical URL for Auth.js callbacks
 #   AUTH_TRUST_HOST=true                        # trust the proxy host header
@@ -31,6 +31,9 @@ echo "==> Generating Prisma client"
 npx prisma generate
 
 echo "==> Applying database migrations (prisma migrate deploy)"
+# One-time only, if the database already has tables but no _prisma_migrations
+# table (error P3005), baseline it first:
+#   npx prisma migrate resolve --applied 0_init
 npx prisma migrate deploy
 
 echo "==> Building Next.js (standalone output)"
